@@ -60,3 +60,12 @@ function makeApiCall() {
 }
 
 document.addEventListener('DOMContentLoaded', handleClientLoad);
+
+function updateSigninStatus(isSignedIn) {
+    if (!isSignedIn) {
+        gapi.auth2.getAuthInstance().signIn();
+    } else {
+        makeApiCall();
+    }
+}
+
