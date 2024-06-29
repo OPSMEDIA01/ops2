@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>이메일 전송 일일 업무일지</title>
+    <title>일일 업무일지</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -45,47 +45,38 @@
         button:hover {
             background: #555;
         }
+        #successMessage {
+            display: none;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>일일 업무일지</h1>
-        <form id="workLogForm">
-            <input type="date" id="date" required>
-            <input type="text" id="name" placeholder="이름" required>
-            <textarea id="tasks" placeholder="오늘의 업무" rows="5" required></textarea>
-            <textarea id="achievements" placeholder="주요 성과" rows="3"></textarea>
-            <button type="submit">이메일로 전송</button>
+        <form action="https://formsubmit.co/llooo_ooo@naver.com" method="POST">
+            <input type="hidden" name="_subject" value="일일 업무일지 제출">
+            <input type="date" name="date" required>
+            <input type="text" name="name" placeholder="이름" required>
+            <textarea name="tasks" placeholder="오늘의 업무" rows="5" required></textarea>
+            <textarea name="achievements" placeholder="주요 성과" rows="3"></textarea>
+            <input type="hidden" name="_next" value="https://yourdomain.com/thanks.html">
+            <button type="submit">제출</button>
         </form>
+        <div id="successMessage">업무일지가 성공적으로 제출되었습니다!</div>
     </div>
 
     <script>
-        const form = document.getElementById('workLogForm');
-
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const date = document.getElementById('date').value;
-            const name = document.getElementById('name').value;
-            const tasks = document.getElementById('tasks').value;
-            const achievements = document.getElementById('achievements').value;
-
-            const subject = `일일 업무일지 - ${name} (${date})`;
-            const body = `
-날짜: ${date}
-이름: ${name}
-
-오늘의 업무:
-${tasks}
-
-주요 성과:
-${achievements}
-            `;
-
-            const mailtoLink = `mailto:llooo_ooo@naver.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-            window.location.href = mailtoLink;
-        });
+        // URL 파라미터에서 성공 메시지 확인
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('submitted') === 'true') {
+            document.getElementById('successMessage').style.display = 'block';
+        }
     </script>
 </body>
 </html>
