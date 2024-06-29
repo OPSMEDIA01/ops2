@@ -126,23 +126,40 @@
             previewButton.textContent = previewDiv.style.display === 'none' ? '프리뷰 보기' : '프리뷰 숨기기';
         });
 
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const date = document.getElementById('date').value;
             const name = document.getElementById('name').value;
             const tasks = Array.from(document.querySelectorAll('.task-input')).map(input => input.value);
             const achievements = document.getElementById('achievements').value;
 
-            const log = { date, name, tasks, achievements };
-            const logs = JSON.parse(localStorage.getItem('workLogs') || '[]');
-            logs.push(log);
-            localStorage.setItem('workLogs', JSON.stringify(logs));
+            const data = {
+                date: date,
+                name: name,
+                tasks: tasks,
+                achievements: achievements
+            };
 
-            alert('업무일지가 저장되었습니다.');
-            form.reset();
-            taskInputs.innerHTML = '<div class="task-container"><input type="text" class="task-input" placeholder="업무 내용" required></div>';
-            previewDiv.style.display = 'none';
-            previewButton.textContent = '프리뷰 보기';
+            try {
+                const response = await fetch('YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL', {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    cache: 'no-cache',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                alert('업무일지가 성공적으로 제출되었습니다.');
+                form.reset();
+                taskInputs.innerHTML = '<div class="task-container"><input type="text" class="task-input" placeholder="업무 내용" required></div>';
+                previewDiv.style.display = 'none';
+                previewButton.textContent = '프리뷰 보기';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('제출 중 오류가 발생했습니다. 나중에 다시 시도해주세요.');
+            }
         });
     </script>
 </body>
