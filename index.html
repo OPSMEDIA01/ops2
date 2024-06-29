@@ -6,57 +6,61 @@
     <title>일일 업무일지</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #1d1d1f;
+            line-height: 1.5;
             margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
+            padding: 0;
+            background-color: #f5f5f7;
         }
         .container {
-            max-width: 600px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
         }
-        h1, h2 {
-            color: #333;
+        h1 {
+            font-size: 48px;
+            font-weight: 700;
             text-align: center;
+            margin-bottom: 40px;
         }
-        input, textarea, select {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        input, textarea, button {
+            padding: 15px;
+            font-size: 17px;
+            border: none;
+            border-radius: 12px;
+            background-color: white;
         }
         button {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            background: #333;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
+            font-weight: 600;
+            color: white;
+            background-color: #0071e3;
             cursor: pointer;
+            transition: background-color 0.3s;
         }
         button:hover {
-            background: #555;
+            background-color: #0077ed;
         }
-        #savedLogs {
-            margin-top: 20px;
+        .task-container {
+            display: flex;
+            gap: 10px;
         }
-        .log-entry {
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 4px;
+        .task-input {
+            flex: 1;
         }
-        .task-entry {
-            margin-bottom: 5px;
+        .remove-task {
+            background-color: #ff3b30;
+        }
+        .preview {
+            margin-top: 40px;
+            padding: 30px;
+            background-color: white;
+            border-radius: 18px;
         }
     </style>
 </head>
@@ -67,109 +71,79 @@
             <input type="date" id="date" required>
             <input type="text" id="name" placeholder="이름" required>
             <div id="taskInputs">
-                <div class="task-entry">
-                    <select class="taskTime">
-                        <option value="00:00-03:00">00:00-03:00</option>
-                        <option value="03:00-06:00">03:00-06:00</option>
-                        <option value="06:00-09:00">06:00-09:00</option>
-                        <option value="09:00-12:00">09:00-12:00</option>
-                        <option value="12:00-15:00">12:00-15:00</option>
-                        <option value="15:00-18:00">15:00-18:00</option>
-                        <option value="18:00-21:00">18:00-21:00</option>
-                        <option value="21:00-24:00">21:00-24:00</option>
-                    </select>
-                    <input type="text" class="taskDescription" placeholder="업무 내용">
+                <div class="task-container">
+                    <input type="text" class="task-input" placeholder="업무 내용" required>
                 </div>
             </div>
             <button type="button" id="addTask">업무 추가</button>
             <textarea id="achievements" placeholder="주요 성과"></textarea>
+            <button type="button" id="previewButton">프리뷰 보기</button>
+            <div id="preview" class="preview" style="display: none;"></div>
             <button type="submit">제출</button>
         </form>
-        <div id="savedLogs"></div>
     </div>
 
     <script>
-        document.getElementById('addTask').addEventListener('click', function() {
-            const taskInputs = document.getElementById('taskInputs');
-            const newTaskEntry = document.createElement('div');
-            newTaskEntry.className = 'task-entry';
-            newTaskEntry.innerHTML = `
-                <select class="taskTime">
-                    <option value="00:00-03:00">00:00-03:00</option>
-                    <option value="03:00-06:00">03:00-06:00</option>
-                    <option value="06:00-09:00">06:00-09:00</option>
-                    <option value="09:00-12:00">09:00-12:00</option>
-                    <option value="12:00-15:00">12:00-15:00</option>
-                    <option value="15:00-18:00">15:00-18:00</option>
-                    <option value="18:00-21:00">18:00-21:00</option>
-                    <option value="21:00-24:00">21:00-24:00</option>
-                </select>
-                <input type="text" class="taskDescription" placeholder="업무 내용">
+        const form = document.getElementById('workLogForm');
+        const taskInputs = document.getElementById('taskInputs');
+        const addTaskButton = document.getElementById('addTask');
+        const previewButton = document.getElementById('previewButton');
+        const previewDiv = document.getElementById('preview');
+
+        addTaskButton.addEventListener('click', () => {
+            const newTaskContainer = document.createElement('div');
+            newTaskContainer.className = 'task-container';
+            newTaskContainer.innerHTML = `
+                <input type="text" class="task-input" placeholder="업무 내용" required>
+                <button type="button" class="remove-task">삭제</button>
             `;
-            taskInputs.appendChild(newTaskEntry);
+            taskInputs.appendChild(newTaskContainer);
+
+            newTaskContainer.querySelector('.remove-task').addEventListener('click', () => {
+                taskInputs.removeChild(newTaskContainer);
+            });
         });
 
-        document.getElementById('workLogForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const tasks = Array.from(document.getElementsByClassName('task-entry')).map(entry => ({
-                time: entry.querySelector('.taskTime').value,
-                description: entry.querySelector('.taskDescription').value
-            }));
+        previewButton.addEventListener('click', () => {
+            const date = document.getElementById('date').value;
+            const name = document.getElementById('name').value;
+            const tasks = Array.from(document.querySelectorAll('.task-input')).map(input => input.value);
+            const achievements = document.getElementById('achievements').value;
 
-            const log = {
-                date: document.getElementById('date').value,
-                name: document.getElementById('name').value,
-                tasks: tasks,
-                achievements: document.getElementById('achievements').value
-            };
-            
-            let logs = JSON.parse(localStorage.getItem('workLogs') || '[]');
+            const previewContent = `
+                <h2>프리뷰</h2>
+                <p><strong>날짜:</strong> ${date}</p>
+                <p><strong>이름:</strong> ${name}</p>
+                <p><strong>업무:</strong></p>
+                <ul>
+                    ${tasks.map(task => `<li>${task}</li>`).join('')}
+                </ul>
+                <p><strong>성과:</strong> ${achievements}</p>
+            `;
+
+            previewDiv.innerHTML = previewContent;
+            previewDiv.style.display = previewDiv.style.display === 'none' ? 'block' : 'none';
+            previewButton.textContent = previewDiv.style.display === 'none' ? '프리뷰 보기' : '프리뷰 숨기기';
+        });
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const date = document.getElementById('date').value;
+            const name = document.getElementById('name').value;
+            const tasks = Array.from(document.querySelectorAll('.task-input')).map(input => input.value);
+            const achievements = document.getElementById('achievements').value;
+
+            const log = { date, name, tasks, achievements };
+            const logs = JSON.parse(localStorage.getItem('workLogs') || '[]');
             logs.push(log);
             localStorage.setItem('workLogs', JSON.stringify(logs));
-            
-            displayLogs();
-            this.reset();
-            document.getElementById('taskInputs').innerHTML = `
-                <div class="task-entry">
-                    <select class="taskTime">
-                        <option value="00:00-03:00">00:00-03:00</option>
-                        <option value="03:00-06:00">03:00-06:00</option>
-                        <option value="06:00-09:00">06:00-09:00</option>
-                        <option value="09:00-12:00">09:00-12:00</option>
-                        <option value="12:00-15:00">12:00-15:00</option>
-                        <option value="15:00-18:00">15:00-18:00</option>
-                        <option value="18:00-21:00">18:00-21:00</option>
-                        <option value="21:00-24:00">21:00-24:00</option>
-                    </select>
-                    <input type="text" class="taskDescription" placeholder="업무 내용">
-                </div>
-            `;
+
+            alert('업무일지가 저장되었습니다.');
+            form.reset();
+            taskInputs.innerHTML = '<div class="task-container"><input type="text" class="task-input" placeholder="업무 내용" required></div>';
+            previewDiv.style.display = 'none';
+            previewButton.textContent = '프리뷰 보기';
         });
-
-        function displayLogs() {
-            const logsContainer = document.getElementById('savedLogs');
-            const logs = JSON.parse(localStorage.getItem('workLogs') || '[]');
-            
-            logsContainer.innerHTML = '<h2>저장된 업무일지</h2>';
-            logs.forEach((log, index) => {
-                let tasksHtml = log.tasks.map(task => 
-                    `<p>${task.time}: ${task.description}</p>`
-                ).join('');
-
-                logsContainer.innerHTML += `
-                    <div class="log-entry">
-                        <p><strong>날짜:</strong> ${log.date}</p>
-                        <p><strong>이름:</strong> ${log.name}</p>
-                        <p><strong>업무:</strong></p>
-                        ${tasksHtml}
-                        <p><strong>성과:</strong> ${log.achievements}</p>
-                    </div>
-                `;
-            });
-        }
-
-        displayLogs();
     </script>
 </body>
 </html>
