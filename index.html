@@ -3,34 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>근무관리 시스템</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>일일 업무일지</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #555;
+        }
+        #savedLogs {
+            margin-top: 20px;
+        }
+        .log-entry {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .task-entry {
+            margin-bottom: 5px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>근무관리</h1>
-        <form id="logForm">
-            <div class="form-group">
-                <label for="date">날짜:</label>
-                <input type="date" id="date" required>
+        <h1>일일 업무일지</h1>
+        <form id="workLogForm">
+            <input type="date" id="date" required>
+            <input type="text" id="name" placeholder="이름" required>
+            <div id="taskInputs">
+                <div class="task-entry">
+                    <select class="taskTime">
+                        <option value="00:00-03:00">00:00-03:00</option>
+                        <option value="03:00-06:00">03:00-06:00</option>
+                        <option value="06:00-09:00">06:00-09:00</option>
+                        <option value="09:00-12:00">09:00-12:00</option>
+                        <option value="12:00-15:00">12:00-15:00</option>
+                        <option value="15:00-18:00">15:00-18:00</option>
+                        <option value="18:00-21:00">18:00-21:00</option>
+                        <option value="21:00-24:00">21:00-24:00</option>
+                    </select>
+                    <input type="text" class="taskDescription" placeholder="업무 내용">
+                </div>
             </div>
-            <div class="form-group">
-                <label for="startTime">출근 시간:</label>
-                <input type="time" id="startTime" required>
-            </div>
-            <div class="form-group">
-                <label for="endTime">퇴근 시간:</label>
-                <input type="time" id="endTime" required>
-            </div>
-            <div class="form-group">
-                <label for="task">업무 내용:</label>
-                <textarea id="task" required></textarea>
-            </div>
+            <button type="button" id="addTask">업무 추가</button>
+            <textarea id="achievements" placeholder="주요 성과"></textarea>
             <button type="submit">제출</button>
         </form>
+        <div id="savedLogs"></div>
     </div>
 
-    <script src="https://apis.google.com/js/api.js"></script>
-    <script src="app.js"></script>
+    <script>
+        document.getElementById('addTask').addEventListener('click', function() {
+            const taskInputs = document.getElementById('taskInputs');
+            const newTaskEntry = document.createElement('div');
+            newTaskEntry.className = 'task-entry';
+            newTaskEntry.innerHTML = `
+                <select class="taskTime">
+                    <option value="00:00-03:00">00:00-03:00</option>
+                    <option value="03:00-06:00">03:00-06:00</option>
+                    <option value="06:00-09:00">06:00-09:00</option>
+                    <option value="09:00-12:00">09:00-12:00</option>
+                    <option value="12:00-15:00">12:00-15:00</option>
+                    <option value="15:00-18:00">15:00-18:00</option>
+                    <option value="18:00-21:00">18:00-21:00</option>
+                    <option value="21:00-24:00">21:00-24:00</option>
+                </select>
+                <input type="text" class="taskDescription" placeholder="업무 내용">
+            `;
+            taskInputs.appendChild(newTaskEntry);
+        });
+
+        document.getElementById('workLogForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const tasks = Array.from(document.getElementsByClassName('task-entry')).map(entry => ({
+                time: entry.querySelector('.taskTime').value,
+                description: entry.querySelector('.taskDescription').value
+            }));
+
+            const log = {
+                date: document.getElementById('date').value,
+                name: document.getElementById('name').value,
+                tasks: tasks,
+                achievements: document.getElementById('achievements').value
+            };
+            
+            let logs = JSON.parse(localStorage.getItem('workLogs') || '[]');
+            logs.push(log);
+            localStorage.setItem('workLogs', JSON.stringify(logs));
+            
+            displayLogs();
+            this.reset();
+            document.getElementById('taskInputs').innerHTML = `
+                <div class="task-entry">
+                    <select class="taskTime">
+                        <option value="00:00-03:00">00:00-03:00</option>
+                        <option value="03:00-06:00">03:00-06:00</option>
+                        <option value="06:00-09:00">06:00-09:00</option>
+                        <option value="09:00-12:00">09:00-12:00</option>
+                        <option value="12:00-15:00">12:00-15:00</option>
+                        <option value="15:00-18:00">15:00-18:00</option>
+                        <option value="18:00-21:00">18:00-21:00</option>
+                        <option value="21:00-24:00">21:00-24:00</option>
+                    </select>
+                    <input type="text" class="taskDescription" placeholder="업무 내용">
+                </div>
+            `;
+        });
+
+        function displayLogs() {
+            const logsContainer = document.getElementById('savedLogs');
+            const logs = JSON.parse(localStorage.getItem('workLogs') || '[]');
+            
+            logsContainer.innerHTML = '<h2>저장된 업무일지</h2>';
+            logs.forEach((log, index) => {
+                let tasksHtml = log.tasks.map(task => 
+                    `<p>${task.time}: ${task.description}</p>`
+                ).join('');
+
+                logsContainer.innerHTML += `
+                    <div class="log-entry">
+                        <p><strong>날짜:</strong> ${log.date}</p>
+                        <p><strong>이름:</strong> ${log.name}</p>
+                        <p><strong>업무:</strong></p>
+                        ${tasksHtml}
+                        <p><strong>성과:</strong> ${log.achievements}</p>
+                    </div>
+                `;
+            });
+        }
+
+        displayLogs();
+    </script>
 </body>
 </html>
