@@ -43,6 +43,7 @@
         }
         button {
             display: inline-block;
+            width: 100%;
             padding: 10px 15px;
             margin: 10px 0;
             background: var(--primary-color);
@@ -120,9 +121,9 @@
     </div>
 
     <script>
-        const API_KEY = '$2a$10$NJ7Io6mjD80kN7XvwhsPguf5X2cPLPmEdyg7CvPrfW3lxz1kVkqH.'; // JSONBin.io에서 얻은 API 키로 교체하세요
-        let BIN_ID = ''; // 첫 실행 후 생성된 BIN ID로 교체하세요
-        const adminPassword = "1461"; // 실제 사용시 더 강력한 비밀번호로 변경하세요
+        const API_KEY = 'YOUR_JSONBIN_API_KEY'; // JSONBin.io에서 얻은 API 키로 교체하세요
+        let BIN_ID = 'YOUR_BIN_ID'; // 첫 실행 후 생성된 BIN ID로 교체하세요
+        const adminPassword = "1234"; // 실제 사용시 더 강력한 비밀번호로 변경하세요
 
         const workLogForm = document.getElementById('workLogForm');
         const successMessage = document.getElementById('successMessage');
@@ -216,6 +217,7 @@
             if (password === adminPassword) {
                 adminLogin.style.display = 'none';
                 adminSection.style.display = 'block';
+                userSection.style.display = 'none';
                 isAdminLoggedIn = true;
                 displayLogs();
                 startRealtimeUpdates();
@@ -227,6 +229,7 @@
         function logout() {
             adminSection.style.display = 'none';
             userSection.style.display = 'block';
+            adminLogin.style.display = 'none';
             document.getElementById('adminPassword').value = '';
             isAdminLoggedIn = false;
             stopRealtimeUpdates();
