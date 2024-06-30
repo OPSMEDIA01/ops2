@@ -69,6 +69,13 @@
             margin-bottom: 10px;
             border-radius: 4px;
         }
+        #realtimeUpdates {
+            background-color: #e7f3fe;
+            border-left: 6px solid #2196F3;
+            margin-bottom: 15px;
+            padding: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -95,6 +102,7 @@
 
         <div id="adminSection">
             <h2>관리자 페이지</h2>
+            <div id="realtimeUpdates">새로운 업무일지가 추가되었습니다!</div>
             <button onclick="downloadCSV()">엑셀 다운로드 (CSV)</button>
             <div id="logEntries"></div>
             <button onclick="logout()">로그아웃</button>
@@ -113,6 +121,10 @@
         const userSection = document.getElementById('userSection');
         const adminLogin = document.getElementById('adminLogin');
         const logEntries = document.getElementById('logEntries');
+        const realtimeUpdates = document.getElementById('realtimeUpdates');
+
+        let lastLogCount = 0;
+        let isAdminLoggedIn = false;
 
         workLogForm.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -150,6 +162,9 @@
                     console.log('New BIN created with ID:', BIN_ID);
                 }
                 console.log('Data saved successfully');
+                if (isAdminLoggedIn) {
+                    displayLogs();
+                }
             } catch (error) {
                 console.error('Error saving data:', error);
             }
@@ -186,7 +201,9 @@
             if (password === adminPassword) {
                 adminLogin.style.display = 'none';
                 adminSection.style.display = 'block';
+                isAdminLoggedIn = true;
                 displayLogs();
+                startRealtimeUpdates();
             } else {
                 showMessage(errorMessage);
             }
@@ -196,6 +213,8 @@
             adminSection.style.display = 'none';
             userSection.style.display = 'block';
             document.getElementById('adminPassword').value = '';
+            isAdminLoggedIn = false;
+            stopRealtimeUpdates();
         }
 
         async function displayLogs() {
@@ -208,6 +227,12 @@
                     <p><strong>성과:</strong> ${log.achievements}</p>
                 </div>
             `).join('');
+
+            if (logs.length > lastLogCount) {
+                realtimeUpdates.style.display = 'block';
+                setTimeout(() => realtimeUpdates.style.display = 'none', 3000);
+            }
+            lastLogCount = logs.length;
         }
 
         function downloadCSV() {
@@ -226,6 +251,16 @@
                 document.body.appendChild(link);
                 link.click();
             });
+        }
+
+        let updateInterval;
+
+        function startRealtimeUpdates() {
+            updateInterval = setInterval(displayLogs, 30000); // 30초마다 업데이트
+        }
+
+        function stopRealtimeUpdates() {
+            clearInterval(updateInterval);
         }
     </script>
 </body>
