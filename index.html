@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>직접 이메일 송 일일 업무일지</title>
+    <title>업무일지 시스템</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,14 +13,14 @@
             background-color: #f4f4f4;
         }
         .container {
-            max-width: 600px;
+            max-width: 800px;
             margin: auto;
             background: white;
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        h1 {
+        h1, h2 {
             color: #333;
             text-align: center;
         }
@@ -33,9 +33,9 @@
             box-sizing: border-box;
         }
         button {
-            display: block;
-            width: 100%;
-            padding: 10px;
+            display: inline-block;
+            padding: 10px 15px;
+            margin: 10px 5px;
             background: #333;
             color: #fff;
             border: none;
@@ -45,37 +45,146 @@
         button:hover {
             background: #555;
         }
-        #successMessage {
-            display: none;
-            background-color: #4CAF50;
+        #successMessage, #errorMessage {
             color: white;
             text-align: center;
             padding: 10px;
             margin-top: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        #successMessage {
+            background-color: #4CAF50;
+        }
+        #errorMessage {
+            background-color: #f44336;
+        }
+        #adminSection, #adminLogin {
+            display: none;
+        }
+        .log-entry {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
             border-radius: 4px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>일일 업무일지</h1>
-        <form action="https://formsubmit.co/llooo_ooo@naver.com" method="POST">
-            <input type="hidden" name="_subject" value="일일 업무일지 제출">
-            <input type="date" name="date" required>
-            <input type="text" name="name" placeholder="이름" required>
-            <textarea name="tasks" placeholder="오늘의 업무" rows="5" required></textarea>
-            <textarea name="achievements" placeholder="주요 성과" rows="3"></textarea>
-            <input type="hidden" name="_next" value="https://yourdomain.com/thanks.html">
-            <button type="submit">제출</button>
-        </form>
-        <div id="successMessage">업무일지가 성공적으로 제출되었습니다!</div>
+        <h1>업무일지 시스템</h1>
+        <div id="userSection">
+            <form id="workLogForm">
+                <input type="date" id="date" required>
+                <input type="text" id="name" placeholder="이름" required>
+                <textarea id="tasks" placeholder="오늘의 업무" rows="5" required></textarea>
+                <textarea id="achievements" placeholder="주요 성과" rows="3"></textarea>
+                <button type="submit">제출</button>
+            </form>
+            <div id="successMessage">업무일지가 성공적으로 제출되었습니다!</div>
+            <button onclick="showAdminLogin()">관리자 페이지</button>
+        </div>
+        
+        <div id="adminLogin">
+            <h2>관리자 로그인</h2>
+            <input type="password" id="adminPassword" placeholder="비밀번호">
+            <button onclick="loginAdmin()">로그인</button>
+            <div id="errorMessage">비밀번호가 올바르지 않습니다.</div>
+        </div>
+
+        <div id="adminSection">
+            <h2>관리자 페이지</h2>
+            <button onclick="downloadCSV()">엑셀 다운로드 (CSV)</button>
+            <div id="logEntries"></div>
+            <button onclick="logout()">로그아웃</button>
+        </div>
     </div>
 
     <script>
-        // URL 파라미터에서 성공 메시지 확인
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('submitted') === 'true') {
-            document.getElementById('successMessage').style.display = 'block';
+        const workLogForm = document.getElementById('workLogForm');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const adminSection = document.getElementById('adminSection');
+        const userSection = document.getElementById('userSection');
+        const adminLogin = document.getElementById('adminLogin');
+        const logEntries = document.getElementById('logEntries');
+
+        const adminPassword = "1234"; // 실제 사용시 더 강력한 비밀번호로 변경하세요
+
+        workLogForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const log = {
+                date: document.getElementById('date').value,
+                name: document.getElementById('name').value,
+                tasks: document.getElementById('tasks').value,
+                achievements: document.getElementById('achievements').value
+            };
+            saveLog(log);
+            this.reset();
+            showMessage(successMessage);
+        });
+
+        function saveLog(log) {
+            let logs = JSON.parse(localStorage.getItem('workLogs') || '[]');
+            logs.push(log);
+            localStorage.setItem('workLogs', JSON.stringify(logs));
+        }
+
+        function showMessage(messageElement) {
+            messageElement.style.display = 'block';
+            setTimeout(() => messageElement.style.display = 'none', 3000);
+        }
+
+        function showAdminLogin() {
+            userSection.style.display = 'none';
+            adminLogin.style.display = 'block';
+        }
+
+        function loginAdmin() {
+            const password = document.getElementById('adminPassword').value;
+            if (password === adminPassword) {
+                adminLogin.style.display = 'none';
+                adminSection.style.display = 'block';
+                displayLogs();
+            } else {
+                showMessage(errorMessage);
+            }
+        }
+
+        function logout() {
+            adminSection.style.display = 'none';
+            userSection.style.display = 'block';
+            document.getElementById('adminPassword').value = '';
+        }
+
+        function displayLogs() {
+            const logs = JSON.parse(localStorage.getItem('workLogs') || '[]');
+            logEntries.innerHTML = logs.map(log => `
+                <div class="log-entry">
+                    <p><strong>날짜:</strong> ${log.date}</p>
+                    <p><strong>이름:</strong> ${log.name}</p>
+                    <p><strong>업무:</strong> ${log.tasks}</p>
+                    <p><strong>성과:</strong> ${log.achievements}</p>
+                </div>
+            `).join('');
+        }
+
+        function downloadCSV() {
+            const logs = JSON.parse(localStorage.getItem('workLogs') || '[]');
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "날짜,이름,업무,성과\n";
+            logs.forEach(function(log) {
+                let row = `${log.date},${log.name},"${log.tasks.replace(/"/g, '""')}","${log.achievements.replace(/"/g, '""')}"`;
+                csvContent += row + "\n";
+            });
+            
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "work_logs.csv");
+            document.body.appendChild(link);
+            link.click();
         }
     </script>
 </body>
