@@ -5,7 +5,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>업무일지 시스템</title>
     <style>
-        /* 이전 스타일 코드는 그대로 유지 */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --background-color: #ecf0f1;
+            --text-color: #34495e;
+            --error-color: #e74c3c;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            display: inline-block;
+            padding: 10px 15px;
+            margin: 10px 0;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        #successMessage, #errorMessage {
+            color: white;
+            text-align: center;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        #successMessage {
+            background-color: var(--secondary-color);
+        }
+        #errorMessage {
+            background-color: var(--error-color);
+        }
+        #adminSection, #adminLogin {
+            display: none;
+        }
+        .log-entry {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        #realtimeUpdates {
+            background-color: #d5e9f7;
+            border-left: 4px solid var(--primary-color);
+            margin-bottom: 15px;
+            padding: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -41,7 +121,7 @@
 
     <script>
         const API_KEY = '$2a$10$NJ7Io6mjD80kN7XvwhsPguf5X2cPLPmEdyg7CvPrfW3lxz1kVkqH.'; // JSONBin.io에서 얻은 API 키로 교체하세요
-        let BIN_ID = '6487d72c9d312622a3695d59'; // 첫 실행 후 생성된 BIN ID로 교체하세요
+        let BIN_ID = ''; // 첫 실행 후 생성된 BIN ID로 교체하세요
         const adminPassword = "1461"; // 실제 사용시 더 강력한 비밀번호로 변경하세요
 
         const workLogForm = document.getElementById('workLogForm');
