@@ -102,6 +102,10 @@
     </div>
 
     <script>
+        const API_KEY = 'YOUR_JSONBIN_API_KEY'; // JSONBin.io에서 얻은 API 키로 교체하세요
+        let BIN_ID = 'YOUR_BIN_ID'; // 처음 실행 시에는 이 줄을 주석 처리하세요
+        const adminPassword = "1234"; // 실제 사용시 더 강력한 비밀번호로 변경하세요
+
         const workLogForm = document.getElementById('workLogForm');
         const successMessage = document.getElementById('successMessage');
         const errorMessage = document.getElementById('errorMessage');
@@ -110,9 +114,7 @@
         const adminLogin = document.getElementById('adminLogin');
         const logEntries = document.getElementById('logEntries');
 
-        const adminPassword = "1234"; // 실제 사용시 더 강력한 비밀번호로 변경하세요
-
-        workLogForm.addEventListener('submit', function(e) {
+        workLogForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             const log = {
                 date: document.getElementById('date').value,
@@ -120,15 +122,53 @@
                 tasks: document.getElementById('tasks').value,
                 achievements: document.getElementById('achievements').value
             };
-            saveLog(log);
+            await saveLog(log);
             this.reset();
             showMessage(successMessage);
         });
 
-        function saveLog(log) {
-            let logs = JSON.parse(localStorage.getItem('workLogs') || '[]');
-            logs.push(log);
-            localStorage.setItem('workLogs', JSON.stringify(logs));
+        async function saveLog(log) {
+            try {
+                const logs = await fetchLogs();
+                logs.push(log);
+                const url = BIN_ID 
+                    ? `https://api.jsonbin.io/v3/b/${BIN_ID}`
+                    : 'https://api.jsonbin.io/v3/b';
+                const method = BIN_ID ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify(logs)
+                });
+                const data = await response.json();
+                if (!BIN_ID) {
+                    BIN_ID = data.metadata.id;
+                    console.log('New BIN created with ID:', BIN_ID);
+                }
+                console.log('Data saved successfully');
+            } catch (error) {
+                console.error('Error saving data:', error);
+            }
+        }
+
+        async function fetchLogs() {
+            if (!BIN_ID) return [];
+            try {
+                const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+                    headers: {
+                        'X-Master-Key': API_KEY
+                    }
+                });
+                const data = await response.json();
+                return data.record || [];
+            } catch (error) {
+                console.error('Error fetching logs:', error);
+                return [];
+            }
         }
 
         function showMessage(messageElement) {
@@ -158,8 +198,8 @@
             document.getElementById('adminPassword').value = '';
         }
 
-        function displayLogs() {
-            const logs = JSON.parse(localStorage.getItem('workLogs') || '[]');
+        async function displayLogs() {
+            const logs = await fetchLogs();
             logEntries.innerHTML = logs.map(log => `
                 <div class="log-entry">
                     <p><strong>날짜:</strong> ${log.date}</p>
@@ -171,20 +211,21 @@
         }
 
         function downloadCSV() {
-            const logs = JSON.parse(localStorage.getItem('workLogs') || '[]');
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "날짜,이름,업무,성과\n";
-            logs.forEach(function(log) {
-                let row = `${log.date},${log.name},"${log.tasks.replace(/"/g, '""')}","${log.achievements.replace(/"/g, '""')}"`;
-                csvContent += row + "\n";
+            fetchLogs().then(logs => {
+                let csvContent = "data:text/csv;charset=utf-8,";
+                csvContent += "날짜,이름,업무,성과\n";
+                logs.forEach(function(log) {
+                    let row = `${log.date},${log.name},"${log.tasks.replace(/"/g, '""')}","${log.achievements.replace(/"/g, '""')}"`;
+                    csvContent += row + "\n";
+                });
+                
+                var encodedUri = encodeURI(csvContent);
+                var link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "work_logs.csv");
+                document.body.appendChild(link);
+                link.click();
             });
-            
-            var encodedUri = encodeURI(csvContent);
-            var link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "work_logs.csv");
-            document.body.appendChild(link);
-            link.click();
         }
     </script>
 </body>
